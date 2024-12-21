@@ -12,8 +12,10 @@ class ButtonAdapter(private val items: List<String>) : RecyclerView.Adapter<Butt
             background = parent.context.getDrawable(R.drawable.rounded_button) // 使用圆角背景
 
             val params = ViewGroup.MarginLayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
+//                 ViewGroup.LayoutParams.MATCH_PARENT,
+//                 ViewGroup.LayoutParams.WRAP_CONTENT
+                140,
+                140
             ).apply {
                 setMargins(10, 10, 10, 10) // 设置每个按钮的上下左右边距
             }
@@ -25,6 +27,12 @@ class ButtonAdapter(private val items: List<String>) : RecyclerView.Adapter<Butt
     }
 
     override fun onBindViewHolder(holder: ButtonViewHolder, position: Int) {
+        val params = holder.button.layoutParams as ViewGroup.MarginLayoutParams
+    if (position % 48 in 0..5) {
+        params.setMargins(10, 100, 10, 10) // Larger top margin
+    } else {
+        params.setMargins(10, 10, 10, 10) // Regular margin
+    }
         holder.button.text = items[position]
     }
 
