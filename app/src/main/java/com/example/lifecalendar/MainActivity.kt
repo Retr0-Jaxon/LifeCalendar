@@ -20,6 +20,7 @@ import com.example.lifecalendar.ui.birthdayDialog.BirthdayDialogFragment
 import java.util.Date
 import java.util.Locale
 import kotlin.text.format
+import android.content.Intent
 
 class MainActivity : AppCompatActivity(), BirthdayDialogFragment.OnBirthdaySetListener {
 
@@ -62,6 +63,10 @@ class MainActivity : AppCompatActivity(), BirthdayDialogFragment.OnBirthdaySetLi
             Log.d(birthday.toString(), "birthday: ${birthday.toString()}")
             // Do something with the birthday
         }
+
+        // 启动BirthdayService
+        val serviceIntent = Intent(this, BirthdayService::class.java)
+        startService(serviceIntent)
     }
 
     private fun isBirthdaySet(): Boolean {
