@@ -1,15 +1,16 @@
 package com.example.lifecalendar
 
 import android.app.Service
+import android.content.ContentValues
 import android.content.Intent
+import android.content.Context
 import android.os.IBinder
 import android.util.Log
 import java.util.Calendar
 import java.util.Date
-
-import android.content.Context
-import android.content.SharedPreferences
-import android.icu.text.SimpleDateFormat
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 class BirthdayService : Service() {
@@ -18,13 +19,12 @@ class BirthdayService : Service() {
     }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-        // 检测是否过了24小时
         checkIf24HoursPassed()
-        // 设置定时器，每隔一分钟检查一次
+        // 设置定时器，每隔20s检查一次
         val thread = Thread {
             while (true) {
                 try {
-                    Thread.sleep((60 * 1000).toLong()) // 休眠一分钟，单位是毫秒
+                    Thread.sleep((20 * 1000).toLong()) // 休眠20s，单位是毫秒
                     checkIf24HoursPassed()
                 } catch (e: InterruptedException) {
                     Log.e(TAG, "Thread hibernation is interrupted.", e)
@@ -37,56 +37,27 @@ class BirthdayService : Service() {
     }
 
     private fun checkIf24HoursPassed(): Boolean {
-        // 从SharedPreferences获取上次记录的日期（这里假设键为"last_record_date"，需要根据实际情况修改）
-        val lastRecordDate = getLastRecordDateFromPrefs()
-        val currentDate = Date()
+        val zonedDateTime = ZonedDateTime.now(ZoneId.of("Asia/Shanghai"))
+        val formatter = DateTimeFormatter.ofPattern("EEE MMM dd HH:mm:ss zzz yyyy", Locale.US)
+        val formattedDateTime = zonedDateTime.format(formatter)
+        Log.e("time", "Time=" + formattedDateTime)
 
-        if (lastRecordDate!= null) {
-            // 计算时间差
-            val diffInMillis = currentDate.time - lastRecordDate.time
-            val diffInDays = diffInMillis / (24 * 60 * 60 * 1000)
-            if (diffInDays >= 1) {
-                // 如果过了24小时，更新记录日期，并返回true
-                saveLastRecordDate(currentDate)
-                return true
-            }
+        // 将formattedDateTime存储到LifeCalendarProvider中
+        storeTimeInProvider(formattedDateTime)
+
+        return true
+    }
+
+
+    private fun storeTimeInProvider(timeString: String) {
+        val values = ContentValues()
+        values.put(LifeCalendarProvider.LIFESPAN_COLUMN_TIME, timeString)
+        val uri = LifeCalendarProvider.CONTENT_URI
+        val newUri = contentResolver.insert(uri, values)
+        if (newUri!= null) {
+            Log.d("BirthdayService", "Successfully inserted data with Uri: $newUri")
         } else {
-            // 如果没有上次记录的日期，保存当前日期作为第一次记录
-            saveLastRecordDate(currentDate)
-        }
-        return false
-    }
-
-    private fun getLastRecordDateFromPrefs(): Date? {
-        val sharedPreferences = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-        val dateString = sharedPreferences.getString("last_record_date", null)
-        return if (dateString!= null) {
-            val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-            formatter.parse(dateString)
-        } else {
-            null
-        }
-    }
-
-    private fun saveLastRecordDate(date: Date) {
-        val editor = getSharedPreferences("app_prefs", Context.MODE_PRIVATE).edit()
-        val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        editor.putString("last_record_date", formatter.format(date))
-        editor.apply()
-    }
-
-    private fun getDayOfWeek(): String {
-        val calendar = Calendar.getInstance()
-        val dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
-        return when (dayOfWeek) {
-            Calendar.SUNDAY -> "Sunday"
-            Calendar.MONDAY -> "Monday"
-            Calendar.TUESDAY -> "Tuesday"
-            Calendar.WEDNESDAY -> "Wednesday"
-            Calendar.THURSDAY -> "Thursday"
-            Calendar.FRIDAY -> "Friday"
-            Calendar.SATURDAY -> "Saturday"
-            else -> "Unknown"
+            Log.e("BirthdayService", "Failed to insert data.")
         }
     }
 
