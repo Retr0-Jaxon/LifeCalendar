@@ -15,17 +15,25 @@ class LifeCalendarProvider : ContentProvider() {
     private val uriMatcher = UriMatcher(UriMatcher.NO_MATCH)
 
     companion object {
-        const val AUTHORITY = "com.example.lifecalendar.provider" // 替换为你的应用包名
+        const val AUTHORITY = "com.example.lifecalendar.provider"
         val CONTENT_URI: Uri = Uri.parse("content://$AUTHORITY/lifespan")
+        val MEMO_URI: Uri = Uri.parse("content://$AUTHORITY/memo")
 
         const val LIFESPAN_TABLE = "lifespan"
         const val LIFESPAN_COLUMN_WEEKS = "weeks"
+        
+        const val MEMO_TABLE = "memo"
+        const val MEMO_COLUMN_ID = "_id"
+        const val MEMO_COLUMN_CONTENT = "content"
+        const val MEMO_COLUMN_TIMESTAMP = "timestamp"
 
         const val LIFESPAN_ID = 1
+        const val MEMO_ID = 2
     }
 
     init {
         uriMatcher.addURI(AUTHORITY, "lifespan", LIFESPAN_ID)
+        uriMatcher.addURI(AUTHORITY, "memo", MEMO_ID)
     }
 
     override fun onCreate(): Boolean {
@@ -51,6 +59,15 @@ class LifeCalendarProvider : ContentProvider() {
                 null,
                 sortOrder
             )
+            MEMO_ID -> db.query(
+                MEMO_TABLE,
+                projection,
+                selection,
+                selectionArgs,
+                null,
+                null,
+                sortOrder
+            )
             else -> throw IllegalArgumentException("Unknown URI: $uri")
         }
         cursor.setNotificationUri(context?.contentResolver, uri)
@@ -60,6 +77,7 @@ class LifeCalendarProvider : ContentProvider() {
     override fun getType(uri: Uri): String? {
         return when (uriMatcher.match(uri)) {
             LIFESPAN_ID -> "vnd.android.cursor.dir/vnd.$AUTHORITY.$LIFESPAN_TABLE"
+            MEMO_ID -> "vnd.android.cursor.dir/vnd.$AUTHORITY.$MEMO_TABLE"
             else -> throw IllegalArgumentException("Unknown URI: $uri")
         }
     }
@@ -68,6 +86,7 @@ class LifeCalendarProvider : ContentProvider() {
         val db = dbHelper.writableDatabase
         val id = when (uriMatcher.match(uri)) {
             LIFESPAN_ID -> db.insert(LIFESPAN_TABLE, null, values)
+            MEMO_ID -> db.insert(MEMO_TABLE, null, values)
             else -> throw IllegalArgumentException("Unknown URI: $uri")
         }
         if (id > 0) {
@@ -81,6 +100,7 @@ class LifeCalendarProvider : ContentProvider() {
         val db = dbHelper.writableDatabase
         val rowsDeleted = when (uriMatcher.match(uri)) {
             LIFESPAN_ID -> db.delete(LIFESPAN_TABLE, selection, selectionArgs)
+            MEMO_ID -> db.delete(MEMO_TABLE, selection, selectionArgs)
             else -> throw IllegalArgumentException("Unknown URI: $uri")
         }
         if (rowsDeleted > 0) {
@@ -98,6 +118,7 @@ class LifeCalendarProvider : ContentProvider() {
         val db = dbHelper.writableDatabase
         val rowsUpdated = when (uriMatcher.match(uri)) {
             LIFESPAN_ID -> db.update(LIFESPAN_TABLE, values, selection, selectionArgs)
+            MEMO_ID -> db.update(MEMO_TABLE, values, selection, selectionArgs)
             else -> throw IllegalArgumentException("Unknown URI: $uri")
         }
         if (rowsUpdated > 0) {
@@ -113,6 +134,13 @@ class LifeCalendarProvider : ContentProvider() {
                 "CREATE TABLE $LIFESPAN_TABLE (" +
                         "${BaseColumns._ID} INTEGER PRIMARY KEY AUTOINCREMENT," +
                         "$LIFESPAN_COLUMN_WEEKS INTEGER)"
+            )
+            
+            db.execSQL(
+                "CREATE TABLE $MEMO_TABLE (" +
+                    "$MEMO_COLUMN_ID INTEGER PRIMARY KEY AUTOINCREMENT," +
+                    "$MEMO_COLUMN_CONTENT TEXT," +
+                    "$MEMO_COLUMN_TIMESTAMP INTEGER)"
             )
         }
 
