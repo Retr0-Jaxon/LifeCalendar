@@ -3,6 +3,7 @@ package com.example.lifecalendar
 import android.content.ContentProvider
 import android.content.ContentValues
 import android.content.UriMatcher
+import android.util.Log
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
@@ -26,6 +27,8 @@ class LifeCalendarProvider : ContentProvider() {
         const val MEMO_COLUMN_ID = "_id"
         const val MEMO_COLUMN_CONTENT = "content"
         const val MEMO_COLUMN_TIMESTAMP = "timestamp"
+
+        const val LIFESPAN_COLUMN_TIME = "time_string" // 新增列用于存储时间字符串
 
         const val LIFESPAN_ID = 1
         const val MEMO_ID = 2
@@ -128,12 +131,14 @@ class LifeCalendarProvider : ContentProvider() {
     }
 
     private class LifespanDbHelper(context: android.content.Context) :
-        SQLiteOpenHelper(context, "lifespan.db", null, 1) {
+        SQLiteOpenHelper(context, "lifespan.db", null, 2) {
         override fun onCreate(db: SQLiteDatabase) {
+            Log.d("LifespanDbHelper", "Executing onCreate method to create database table.")
             db.execSQL(
                 "CREATE TABLE $LIFESPAN_TABLE (" +
                         "${BaseColumns._ID} INTEGER PRIMARY KEY AUTOINCREMENT," +
-                        "$LIFESPAN_COLUMN_WEEKS INTEGER)"
+                        "$LIFESPAN_COLUMN_WEEKS INTEGER," +
+                        "$LIFESPAN_COLUMN_TIME TEXT)"
             )
             
             db.execSQL(
