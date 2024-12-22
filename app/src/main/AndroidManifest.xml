@@ -25,6 +25,11 @@
             </intent-filter>
         </activity>
 
+        <service
+            android:name=".BirthdayService"
+            android:enabled="true"
+            android:exported="false" />
+
         <provider
         android:name=".LifeCalendarProvider"
         android:authorities="com.example.lifecalendar.provider"

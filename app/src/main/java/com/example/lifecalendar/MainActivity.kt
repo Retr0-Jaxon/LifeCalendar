@@ -2,6 +2,7 @@ package com.example.lifecalendar
 
 
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.database.Cursor
 import android.icu.text.SimpleDateFormat
@@ -73,6 +74,9 @@ class MainActivity : AppCompatActivity(), BirthdayDialogFragment.OnBirthdaySetLi
             // Do something with the birthday
         }
 
+        val serviceIntent = Intent(this, BirthdayService::class.java)
+        startService(serviceIntent)
+
 
     }
 
@@ -102,10 +106,11 @@ class MainActivity : AppCompatActivity(), BirthdayDialogFragment.OnBirthdaySetLi
     private fun isLifespanSet(): Boolean {
         val uri = LifeCalendarProvider.CONTENT_URI
         val projection = arrayOf(LifeCalendarProvider.LIFESPAN_COLUMN_WEEKS)
-        val cursor: Cursor? = contentResolver.query(uri, projection, null, null, null)
-         return cursor?.use {
-            it.moveToFirst() // 如果有数据，返回 true
-        } ?: false // 如果没有数据，返回 false
+        val selection = "${LifeCalendarProvider.LIFESPAN_COLUMN_WEEKS} IS NOT NULL"
+        val cursor: Cursor? = contentResolver.query(uri, projection, selection, null, null)
+        return cursor?.use {
+            it.moveToFirst()
+        } ?: false
     }
 
     private fun saveBirthday(date: Date) {
