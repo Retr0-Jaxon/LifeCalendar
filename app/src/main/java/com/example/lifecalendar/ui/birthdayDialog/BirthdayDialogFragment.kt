@@ -39,11 +39,14 @@ class BirthdayDialogFragment : DialogFragment() {
         val day = calendar.get(Calendar.DAY_OF_MONTH)
 
 
-        return DatePickerDialog(requireContext(), { _: DatePicker, year: Int, month: Int, day: Int ->
+        val datePickerDialog = DatePickerDialog(requireContext(), { _: DatePicker, year: Int, month: Int, day: Int ->
             val selectedCalendar = Calendar.getInstance()
             selectedCalendar.set(year, month, day)
             listener?.onBirthdaySet(selectedCalendar.time)
             dismiss()
         }, year, month, day)
+         // 设置对话框标题
+        datePickerDialog.setTitle("选择您的生日")
+         return datePickerDialog
     }
 }
