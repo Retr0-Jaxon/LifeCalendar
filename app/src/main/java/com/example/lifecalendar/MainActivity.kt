@@ -2,7 +2,6 @@ package com.example.lifecalendar
 
 
 import android.content.Context
-import android.content.Intent
 import android.content.SharedPreferences
 import android.database.Cursor
 import android.icu.text.SimpleDateFormat
@@ -74,28 +73,6 @@ class MainActivity : AppCompatActivity(), BirthdayDialogFragment.OnBirthdaySetLi
             // Do something with the birthday
         }
 
-        // 启动BirthdayService
-        val serviceIntent = Intent(this, BirthdayService::class.java)
-        startService(serviceIntent)
-        // 查询是否成功存储时间字符串
-        val contentResolver = contentResolver
-        val projection = arrayOf(LifeCalendarProvider.LIFESPAN_COLUMN_TIME)
-        val cursor = contentResolver.query(
-            LifeCalendarProvider.CONTENT_URI,
-            projection,
-            null,
-            null,
-            null
-        )
-        if (cursor!= null && cursor.moveToFirst()) {
-            val index = cursor.getColumnIndex(LifeCalendarProvider.LIFESPAN_COLUMN_TIME)
-            if (index!= -1) {
-                // 获取存储的时间字符串
-                val storedString = cursor.getString(index)
-                Log.d("MainActivity", "Stored string: $storedString")
-            }
-            cursor.close()
-        }
 
     }
 
@@ -126,7 +103,7 @@ class MainActivity : AppCompatActivity(), BirthdayDialogFragment.OnBirthdaySetLi
         val uri = LifeCalendarProvider.CONTENT_URI
         val projection = arrayOf(LifeCalendarProvider.LIFESPAN_COLUMN_WEEKS)
         val cursor: Cursor? = contentResolver.query(uri, projection, null, null, null)
-        return cursor?.use {
+         return cursor?.use {
             it.moveToFirst() // 如果有数据，返回 true
         } ?: false // 如果没有数据，返回 false
     }

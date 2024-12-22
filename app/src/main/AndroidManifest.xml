@@ -24,15 +24,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <provider
         android:name=".LifeCalendarProvider"
         android:authorities="com.example.lifecalendar.provider"
         android:exported="true"
         android:enabled="true"/>
-        <service
-            android:name=".BirthdayService"
-            android:enabled="true"
-            android:exported="false" />
+
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
