@@ -2,6 +2,7 @@ package com.example.lifecalendar.ui.lifespanDialog
 
 import android.app.Dialog
 import android.content.ContentValues
+import android.content.Context
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.widget.ArrayAdapter
@@ -11,6 +12,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import com.example.lifecalendar.LifeCalendarProvider
 import com.example.lifecalendar.R
+import com.example.lifecalendar.ui.home.HomeFragment
 
 
 
@@ -21,9 +23,24 @@ import com.example.lifecalendar.R
  */
 class lifeSpanFragment : DialogFragment() {
 
+
+
+
+
     private lateinit var spinner: Spinner
 
+
+
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+
+        val sharedPreferences = requireContext().getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+        val hasShown = sharedPreferences.getBoolean("hasShownLifeSpanDialog", false)
+        if (hasShown) {
+           dismiss() // 如果已经显示过，直接关闭
+           return super.onCreateDialog(savedInstanceState)
+        }
+        sharedPreferences.edit().putBoolean("hasShownLifeSpanDialog", true).apply()
+
         val builder = AlertDialog.Builder(requireContext())
         builder.setTitle("选择预期寿命")
 
@@ -50,7 +67,14 @@ class lifeSpanFragment : DialogFragment() {
             }
             context?.contentResolver?.insert(LifeCalendarProvider.CONTENT_URI, values)
 
+            // 更新 HomeFragment
+            val homeFragment = requireActivity().supportFragmentManager
+                .findFragmentById(R.id.nav_host_fragment_content_main)
+                ?.childFragmentManager
+                ?.fragments
+                ?.find { it is HomeFragment } as? HomeFragment
 
+            homeFragment?.refreshRecyclerView()
         }
 
         builder.setNegativeButton("取消") { dialog, _ ->

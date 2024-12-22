@@ -1,25 +1,31 @@
 package com.example.lifecalendar
 
+
 import android.content.Context
 import android.content.SharedPreferences
+import android.database.Cursor
 import android.icu.text.SimpleDateFormat
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
-import com.google.android.material.snackbar.Snackbar
-import com.google.android.material.navigation.NavigationView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.drawerlayout.widget.DrawerLayout
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.FragmentTransaction
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
-import androidx.drawerlayout.widget.DrawerLayout
-import androidx.appcompat.app.AppCompatActivity
 import com.example.lifecalendar.databinding.ActivityMainBinding
 import com.example.lifecalendar.ui.birthdayDialog.BirthdayDialogFragment
+import com.example.lifecalendar.ui.lifespanDialog.lifeSpanFragment
+import com.google.android.material.navigation.NavigationView
+import com.google.android.material.snackbar.Snackbar
 import java.util.Date
 import java.util.Locale
-import kotlin.text.format
+
 
 class MainActivity : AppCompatActivity(), BirthdayDialogFragment.OnBirthdaySetListener {
 
@@ -58,12 +64,16 @@ class MainActivity : AppCompatActivity(), BirthdayDialogFragment.OnBirthdaySetLi
         sharedPreferences = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
         if (!isBirthdaySet()) {
             showBirthdayDialog()
+//            val birthday = getBirthday()
+//            Log.d("dddd", "birthday: ${birthday.toString()}")
         } else {
             // User has set birthday, proceed to main app logic
             val birthday = getBirthday()
-            Log.d(birthday.toString(), "birthday: ${birthday.toString()}")
+            Log.d("dddd", "birthday: ${birthday.toString()}")
             // Do something with the birthday
         }
+
+
     }
 
     private fun isBirthdaySet(): Boolean {
@@ -80,6 +90,22 @@ class MainActivity : AppCompatActivity(), BirthdayDialogFragment.OnBirthdaySetLi
         // Proceed to main app logic
         val birthday = getBirthday()
         // Do something with the birthday
+        if (!isLifespanSet()) {
+            // 显示 lifeSpanFragment
+            val lifeSpanFragment = lifeSpanFragment()
+            lifeSpanFragment.show(supportFragmentManager, "life_span_dialog")
+        }
+    }
+
+
+
+    private fun isLifespanSet(): Boolean {
+        val uri = LifeCalendarProvider.CONTENT_URI
+        val projection = arrayOf(LifeCalendarProvider.LIFESPAN_COLUMN_WEEKS)
+        val cursor: Cursor? = contentResolver.query(uri, projection, null, null, null)
+         return cursor?.use {
+            it.moveToFirst() // 如果有数据，返回 true
+        } ?: false // 如果没有数据，返回 false
     }
 
     private fun saveBirthday(date: Date) {
