@@ -1,60 +1,62 @@
 package com.example.lifecalendar.ui.lifespanDialog
 
+import android.app.Dialog
+import android.content.ContentValues
 import android.os.Bundle
 import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.widget.ArrayAdapter
+import android.widget.Spinner
+import androidx.appcompat.app.AlertDialog
+
+import androidx.fragment.app.DialogFragment
+import com.example.lifecalendar.LifeCalendarProvider
 import com.example.lifecalendar.R
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
+
 
 /**
  * A simple [Fragment] subclass.
  * Use the [lifeSpanFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-class lifeSpanFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
+class lifeSpanFragment : DialogFragment() {
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+    private lateinit var spinner: Spinner
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_life_span, container, false)
-    }
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setTitle("选择预期寿命")
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment lifeSpanFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            lifeSpanFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
+        val view = layoutInflater.inflate(R.layout.fragment_life_span, null)
+        spinner = view.findViewById(R.id.lifespan_spinner)
+        builder.setView(view)
+
+        val lifeSpans = arrayOf("60年", "70年", "80年", "90年")
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, lifeSpans)
+        spinner.adapter = adapter
+
+        builder.setPositiveButton("确定") { _, _ ->
+            val selectedLifeSpan = spinner.selectedItem.toString()
+            val weeks = when (selectedLifeSpan) {
+                "60年" -> 3128
+                "70年" -> 3650
+                "80年" -> 4171
+                "90年" -> 4693
+                else -> 0 // 默认值，可以根据需要修改
             }
+            // 将选择的周数存储到内容提供器中
+            val values = ContentValues().apply {
+                put(LifeCalendarProvider.LIFESPAN_COLUMN_WEEKS, weeks)
+            }
+            context?.contentResolver?.insert(LifeCalendarProvider.CONTENT_URI, values)
+
+
+        }
+
+        builder.setNegativeButton("取消") { dialog, _ ->
+            dialog.dismiss()
+        }
+
+        return builder.create()
     }
 }

@@ -6,8 +6,14 @@ import androidx.lifecycle.ViewModel
 
 class SlideshowViewModel : ViewModel() {
 
-    private val _text = MutableLiveData<String>().apply {
-        value = "This is slideshow Fragment"
+    // 用于存储步数的 LiveData
+    private val _steps = MutableLiveData<Int>().apply {
+        value = 0  // 初始步数为0
     }
-    val text: LiveData<String> = _text
+    val steps: LiveData<Int> = _steps
+
+    // 更新步数的方法
+    fun updateStepCount(newStepCount: Int) {
+        _steps.value = newStepCount
+    }
 }

@@ -42,6 +42,7 @@ class MainActivity : AppCompatActivity(), BirthdayDialogFragment.OnBirthdaySetLi
                 .setAction("Action", null)
                 .setAnchorView(R.id.fab).show()
         }
+
         val drawerLayout: DrawerLayout = binding.drawerLayout
         val navView: NavigationView = binding.navView
         val navController = findNavController(R.id.nav_host_fragment_content_main)
@@ -54,6 +55,7 @@ class MainActivity : AppCompatActivity(), BirthdayDialogFragment.OnBirthdaySetLi
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
+
         sharedPreferences = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
         if (!isBirthdaySet()) {
             showBirthdayDialog()
