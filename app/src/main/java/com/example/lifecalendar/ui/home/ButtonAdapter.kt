@@ -29,7 +29,7 @@ class ButtonAdapter(private val items: List<String>) : RecyclerView.Adapter<Butt
     override fun onBindViewHolder(holder: ButtonViewHolder, position: Int) {
         val params = holder.button.layoutParams as ViewGroup.MarginLayoutParams
     if (position % 48 in 0..5) {
-        params.setMargins(10, 100, 10, 10) // Larger top margin
+        params.setMargins(10, 150, 10, 10) // Larger top margin
     } else {
         params.setMargins(10, 10, 10, 10) // Regular margin
     }

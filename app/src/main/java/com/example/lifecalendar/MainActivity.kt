@@ -53,6 +53,7 @@ class MainActivity : AppCompatActivity(), BirthdayDialogFragment.OnBirthdaySetLi
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
+
         sharedPreferences = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
         if (!isBirthdaySet()) {
             showBirthdayDialog()

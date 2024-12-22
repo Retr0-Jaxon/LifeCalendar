@@ -20,6 +20,7 @@ class HomeFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
 
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -38,7 +39,8 @@ class HomeFragment : Fragment() {
 
         val recyclerView: RecyclerView = binding.recyclerView
         recyclerView.layoutManager = GridLayoutManager(context, 6) // 6 列
-         val buttonTexts = List(96) { "${it}" } // 8 行 6 列，共 48 个按钮
+
+         val buttonTexts = MutableList(3650) { "${it}" } // 8 行 6 列，共 48 个按钮
 //        val buttonTexts = List(96) { " " }
         recyclerView.adapter = ButtonAdapter(buttonTexts)
         return root
