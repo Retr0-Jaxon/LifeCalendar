@@ -160,6 +160,9 @@ class MainActivity : AppCompatActivity(), BirthdayDialogFragment.OnBirthdaySetLi
         val sharedPreferences = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
         val showNumbers = sharedPreferences.getBoolean("show_numbers", true)
         menu.findItem(R.id.action_show_numbers).isChecked = showNumbers
+        //控制导航栏右上三点下拉菜单 只在主页显示
+        val currentDestinationId = findNavController(R.id.nav_host_fragment_content_main).currentDestination?.id
+        menu.findItem(R.id.action_show_numbers).isVisible = (currentDestinationId == R.id.nav_home)
         
         return true
     }
@@ -192,13 +195,17 @@ class MainActivity : AppCompatActivity(), BirthdayDialogFragment.OnBirthdaySetLi
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
 
-    override fun onPrepareOptionsMenu(menu: Menu): Boolean {
-        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_content_main)
-        val currentFragment = navHostFragment?.childFragmentManager?.fragments?.find { it.isVisible }
 
-        // 仅在 HomeFragment 时显示菜单
-        menu.findItem(R.id.action_show_numbers).isVisible = currentFragment is HomeFragment
 
-        return super.onPrepareOptionsMenu(menu)
-    }
+
+//    override fun onPrepareOptionsMenu(menu: Menu): Boolean {
+//        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_content_main)
+//        val currentFragment = navHostFragment?.childFragmentManager?.fragments?.find { it.isVisible }
+//
+//        // 仅在 HomeFragment 时显示菜单
+//        menu.findItem(R.id.action_show_numbers).isVisible = currentFragment is HomeFragment
+//
+//        return super.onPrepareOptionsMenu(menu)
+//    }
+
 }
