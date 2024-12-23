@@ -50,16 +50,66 @@ class BirthdayService : Service() {
 
 
     private fun storeTimeInProvider(timeString: String) {
+        val uri = LifeCalendarProvider.TIME_CHECK_URI
+        
+        // 查询是否已有记录
+        val cursor = contentResolver.query(
+            uri,
+            arrayOf(LifeCalendarProvider.TIME_CHECK_COLUMN_ID),
+            null,
+            null,
+            null
+        )
+
         val values = ContentValues().apply {
             put(LifeCalendarProvider.TIME_CHECK_COLUMN_TIMESTAMP, System.currentTimeMillis())
             put(LifeCalendarProvider.TIME_CHECK_COLUMN_FORMATTED_TIME, timeString)
         }
-        val uri = LifeCalendarProvider.TIME_CHECK_URI
-        val newUri = contentResolver.insert(uri, values)
-        if (newUri != null) {
-            Log.d("BirthdayService", "Successfully inserted time check data with Uri: $newUri")
-        } else {
-            Log.e("BirthdayService", "Failed to insert time check data.")
+
+        cursor?.use {
+            if (it.moveToFirst()) {
+                // 已有记录，更新它
+                val id = it.getInt(it.getColumnIndexOrThrow(LifeCalendarProvider.TIME_CHECK_COLUMN_ID))
+                contentResolver.update(
+                    uri,
+                    values,
+                    "${LifeCalendarProvider.TIME_CHECK_COLUMN_ID} = ?",
+                    arrayOf(id.toString())
+                )
+                Log.d("BirthdayService", "Updated time check data")
+            } else {
+                // 没有记录，插入新记录
+                val newUri = contentResolver.insert(uri, values)
+                if (newUri != null) {
+                    Log.d("BirthdayService", "Successfully inserted time check data")
+                } else {
+                    Log.e("BirthdayService", "Failed to insert time check data")
+                }
+            }
+        }
+
+        // 查询并展示最新存储的时间数据
+        val checkCursor = contentResolver.query(
+            uri,
+            arrayOf(
+                LifeCalendarProvider.TIME_CHECK_COLUMN_FORMATTED_TIME,
+                LifeCalendarProvider.TIME_CHECK_COLUMN_TIMESTAMP
+            ),
+            null,
+            null,
+            null
+        )
+
+        checkCursor?.use {
+            if (it.moveToFirst()) {
+                val formattedTime = it.getString(
+                    it.getColumnIndexOrThrow(LifeCalendarProvider.TIME_CHECK_COLUMN_FORMATTED_TIME)
+                )
+                val timestamp = it.getLong(
+                    it.getColumnIndexOrThrow(LifeCalendarProvider.TIME_CHECK_COLUMN_TIMESTAMP)
+                )
+                Log.d("BirthdayService", "Stored time: $formattedTime, Timestamp: $timestamp")
+            }
         }
     }
 

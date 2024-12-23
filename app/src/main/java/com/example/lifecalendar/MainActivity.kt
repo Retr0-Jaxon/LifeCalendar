@@ -9,6 +9,7 @@ import android.icu.text.SimpleDateFormat
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
+import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
@@ -21,6 +22,7 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.example.lifecalendar.databinding.ActivityMainBinding
 import com.example.lifecalendar.ui.birthdayDialog.BirthdayDialogFragment
+import com.example.lifecalendar.ui.home.HomeFragment
 import com.example.lifecalendar.ui.lifespanDialog.lifeSpanFragment
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
@@ -44,9 +46,25 @@ class MainActivity : AppCompatActivity(), BirthdayDialogFragment.OnBirthdaySetLi
         setSupportActionBar(binding.appBarMain.toolbar)
 
         binding.appBarMain.fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null)
-                .setAnchorView(R.id.fab).show()
+            // 检查当前是否在 HomeFragment
+            val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_content_main)
+            val currentFragment = navHostFragment?.childFragmentManager?.fragments?.find { it.isVisible }
+            
+            if (currentFragment is HomeFragment) {
+                // 如果当前在 HomeFragment，直接滚动
+                currentFragment.scrollToCurrentWeek()
+            } else {
+                // 如果不在 HomeFragment，先导航再滚动
+                val navController = findNavController(R.id.nav_host_fragment_content_main)
+                navController.navigate(R.id.nav_home)
+                
+                view.post {
+                    val homeFragment = navHostFragment?.childFragmentManager?.fragments?.find { 
+                        it is HomeFragment 
+                    } as? HomeFragment
+                    homeFragment?.scrollToCurrentWeek()
+                }
+            }
         }
 
         val drawerLayout: DrawerLayout = binding.drawerLayout
@@ -77,6 +95,10 @@ class MainActivity : AppCompatActivity(), BirthdayDialogFragment.OnBirthdaySetLi
         val serviceIntent = Intent(this, BirthdayService::class.java)
         startService(serviceIntent)
 
+        val navController2 = findNavController(R.id.nav_host_fragment_content_main)
+        navController2.addOnDestinationChangedListener { _, destination, _ ->
+            invalidateOptionsMenu() // This will trigger onPrepareOptionsMenu
+        }
 
     }
 
@@ -132,13 +154,51 @@ class MainActivity : AppCompatActivity(), BirthdayDialogFragment.OnBirthdaySetLi
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.main, menu)
+        
+        // 从 SharedPreferences 读取显示周数的设置
+        val sharedPreferences = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+        val showNumbers = sharedPreferences.getBoolean("show_numbers", true)
+        menu.findItem(R.id.action_show_numbers).isChecked = showNumbers
+        
         return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_show_numbers -> {
+                item.isChecked = !item.isChecked
+                // 保存设置到 SharedPreferences
+                getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+                    .edit()
+                    .putBoolean("show_numbers", item.isChecked)
+                    .apply()
+                
+                // 更新 HomeFragment
+                val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_content_main)
+                val homeFragment = navHostFragment?.childFragmentManager?.fragments?.find { 
+                    it is HomeFragment 
+                } as? HomeFragment
+                homeFragment?.refreshRecyclerView()
+                
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 
     override fun onSupportNavigateUp(): Boolean {
         val navController = findNavController(R.id.nav_host_fragment_content_main)
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu): Boolean {
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_content_main)
+        val currentFragment = navHostFragment?.childFragmentManager?.fragments?.find { it.isVisible }
+
+        // 仅在 HomeFragment 时显示菜单
+        menu.findItem(R.id.action_show_numbers).isVisible = currentFragment is HomeFragment
+
+        return super.onPrepareOptionsMenu(menu)
     }
 }

@@ -4,6 +4,7 @@ import android.app.Dialog
 import android.content.ContentValues
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.widget.ArrayAdapter
 import android.widget.Spinner
@@ -33,13 +34,13 @@ class lifeSpanFragment : DialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
 
-        val sharedPreferences = requireContext().getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-        val hasShown = sharedPreferences.getBoolean("hasShownLifeSpanDialog", false)
-        if (hasShown) {
-           dismiss() // 如果已经显示过，直接关闭
-           return super.onCreateDialog(savedInstanceState)
-        }
-        sharedPreferences.edit().putBoolean("hasShownLifeSpanDialog", true).apply()
+//        val sharedPreferences = requireContext().getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+//        val hasShown = sharedPreferences.getBoolean("hasShownLifeSpanDialog", false)
+//        if (hasShown) {
+//           dismiss() // 如果已经显示过，直接关闭
+//           return super.onCreateDialog(savedInstanceState)
+//        }
+//        sharedPreferences.edit().putBoolean("hasShownLifeSpanDialog", true).apply()
 
         val builder = AlertDialog.Builder(requireContext())
         builder.setTitle("选择预期寿命")
@@ -61,20 +62,46 @@ class lifeSpanFragment : DialogFragment() {
                 "90年" -> 4693
                 else -> 0 // 默认值，可以根据需要修改
             }
-            // 将选择的周数存储到内容提供器中
+            // 判断是否有数据，若已经有数据，先删除再写入
+            val cursor = context?.contentResolver?.query(LifeCalendarProvider.CONTENT_URI, null, null, null, null)
+            if (cursor != null && cursor.moveToFirst()) {
+                context?.contentResolver?.delete(LifeCalendarProvider.CONTENT_URI, null, null)
+            }
             val values = ContentValues().apply {
                 put(LifeCalendarProvider.LIFESPAN_COLUMN_WEEKS, weeks)
             }
             context?.contentResolver?.insert(LifeCalendarProvider.CONTENT_URI, values)
 
+
+//            if (cursor != null && cursor.moveToFirst()) {
+//                val columnIndex = cursor.getColumnIndex(LifeCalendarProvider.LIFESPAN_COLUMN_WEEKS)
+//                if (columnIndex != -1) { // 检查列索引是否有效
+//                    val weeks = cursor.getInt(columnIndex)
+//                    Log.d("LifeCalendarProvider", "Weeks from $LifeCalendarProvider.LIFESPAN_COLUMN_WEEKS: $weeks")
+//                } else {
+//                    Log.e("LifeCalendarProvider", "Column index for LIFESPAN_COLUMN_WEEKS not found.")
+//                }
+//            } else {
+//                Log.e("LifeCalendarProvider", "Cursor is null or empty.")
+//            }
+
             // 更新 HomeFragment
-            val homeFragment = requireActivity().supportFragmentManager
+            var homeFragment = requireActivity().supportFragmentManager
                 .findFragmentById(R.id.nav_host_fragment_content_main)
                 ?.childFragmentManager
                 ?.fragments
                 ?.find { it is HomeFragment } as? HomeFragment
 
+            if (homeFragment == null) {
+                homeFragment = requireActivity().supportFragmentManager
+                    .findFragmentById(R.id.nav_host_fragment_content_main)
+                    ?.childFragmentManager
+                    ?.findFragmentByTag("HomeFragmentTag") as? HomeFragment
+            }
+
             homeFragment?.refreshRecyclerView()
+
+
         }
 
         builder.setNegativeButton("取消") { dialog, _ ->

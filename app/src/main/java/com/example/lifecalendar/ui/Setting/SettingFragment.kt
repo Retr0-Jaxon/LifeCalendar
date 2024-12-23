@@ -7,7 +7,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.ViewModelProvider
+import com.example.lifecalendar.BirthdayService
 import com.example.lifecalendar.databinding.FragmentSettingBinding
+import com.example.lifecalendar.ui.birthdayDialog.BirthdayDialogFragment
+import com.example.lifecalendar.ui.lifespanDialog.lifeSpanFragment
+
 class SettingFragment : Fragment() {
 
     private var _binding: FragmentSettingBinding? = null
@@ -21,8 +25,6 @@ class SettingFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // TODO: Use the ViewModel
     }
 
     override fun onCreateView(
@@ -30,11 +32,34 @@ class SettingFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val settingViewModelViewModel =
-            ViewModelProvider(this).get(SettingViewModel::class.java)
-
         _binding = FragmentSettingBinding.inflate(inflater, container, false)
         val root: View = binding.root
+
+        // Set up the button click listener for birthday dialog
+        binding.buttonShowBirthdayDialog.setOnClickListener {
+            showBirthdayDialog()
+        }
+
+        // Set up the button click listener for lifespan dialog
+        binding.buttonShowLifespanDialog.setOnClickListener {
+            showLifespanDialog()
+        }
+
         return root
+    }
+
+    private fun showBirthdayDialog() {
+        val dialog = BirthdayDialogFragment()
+        dialog.show(requireActivity().supportFragmentManager, "birthday_dialog")
+    }
+
+    private fun showLifespanDialog() {
+        val lifeSpanDialog = lifeSpanFragment()
+        lifeSpanDialog.show(requireActivity().supportFragmentManager, "life_span_dialog")
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }
